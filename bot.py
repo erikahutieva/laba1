@@ -1,4 +1,4 @@
-import logging
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
 
@@ -14,13 +14,13 @@ IMAGE_PATH = './image.jpg'
 AUDIO_PATH = './audio.mp3'
 def start(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Получить изображение", callback_data='get_image')],
+        [InlineKeyboardButton("Получить изображение", callback_data='get_image')], #создаю кнопку
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    reply_markup = InlineKeyboardMarkup(keyboard)# клавиатура с кнопкой
     update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
 
 def button(update: Update, context: CallbackContext) -> None:
-    query = update.callback_query
+    query = update.callback_query 
     query.answer()
 
     if query.data == 'get_image':
@@ -29,7 +29,7 @@ def button(update: Update, context: CallbackContext) -> None:
 def get_audio(update: Update, context: CallbackContext) -> None:
     context.bot.send_audio(chat_id=update.message.chat_id, audio=open(AUDIO_PATH, 'rb'))
 
-def get_repo_link(update: Update, context: CallbackContext) -> None:
+def get_repo_link(update: Update, context: CallbackContext) -> None: 
     update.message.reply_text(f'Ссылка на репозиторий: {REPO_URL}')
 
 def main() -> None:
