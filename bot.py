@@ -97,3 +97,10 @@ def text_handler(msg):
         bot.register_next_step_handler(msg, gen_img) 
     else:
         bot.send_message(msg.chat.id, "Неизвестная команда. Используйте /gen_audio для генерации аудио, /repo для получения репозитория или /stop для остановки бота")
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_handler(call):
+    if call.data == "generate_image":  # Если callback_data равна "generate_image"
+        bot.send_message(call.message.chat.id, "Отправьте текст для генерации изображения.")
+        bot.register_next_step_handler(call.message, gen_img)  
