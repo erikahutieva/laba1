@@ -1,6 +1,5 @@
 import requests  #  для отправки HTTP-запросов
 import urllib3  # для управления запросами
-from pydub.generators import Sine  
 import telebot  
 from MukeshAPI import api 
 from gtts import gTTS  #  Google Text-to-Speech для создания аудиофайлов из текста
@@ -42,68 +41,59 @@ def gen_img(msg):#это объект сообщения, передаваемы
         img = api.ai_image(msg.text)  #  MukeshAPI для генерации изображения
         bot.send_photo(msg.chat.id, img, caption=msg.text)  # Отправляем изображение в чат вместе с отправленным текстом
     except Exception as e:
-        print(f"Ошибка: {e}")  # Выводим ошибку в консоль
-        bot.send_message(msg.chat.id, "Не удалось отправить изображение")  # Сообщение об ошибке пользователю
+        print(f"Ошибка: {e}") 
+        bot.send_message(msg.chat.id, "Не удалось отправить изображение") 
 
-    # Создаем клавиатуру с кнопками действий
-    keyboard = telebot.types.InlineKeyboardMarkup()
-    for btn_text, btn_callback in START_BTNS:  # Добавляем каждую кнопку в клавиатуру
-        keyboard.add(telebot.types.InlineKeyboardButton(text=btn_text, callback_data=btn_callback))
+    keyboard = telebot.types.InlineKeyboardMarkup()# Создаем клавиатуру с кнопками действий
+    for btn_text, btn_callback in START_BTNS:  
+        keyboard.add(telebot.types.InlineKeyboardButton(text=btn_text, callback_data=btn_callback))#добавляем текст и действие
     bot.send_message(msg.chat.id, "Выберите действие:", reply_markup=keyboard)  # Отправляем клавиатуру пользователю
 
-# Функция для генерации аудио на основе текста пользователя
+
 def gen_audio(msg):
-    bot.clear_step_handler_by_chat_id(msg.chat.id)  # Удаляем обработчики для текущего чата
+    bot.clear_step_handler_by_chat_id(msg.chat.id)  
     try:
-        tts = gTTS(text=msg.text, lang='en')  # Создаем аудио из текста с помощью gTTS
-        tts.save("req.mp3")  # Сохраняем аудио в файл "req.mp3"
+        tts = gTTS(text=msg.text, lang='en')  # Создаем аудио из текста с помощью gTTS, можно ru для русского
+        tts.save("laba1.mp3") 
         
         # Открываем файл и отправляем его в чат
-        with open("req.mp3", "rb") as f:
-            bot.send_audio(chat_id=msg.chat.id, audio=f)  # Отправляем аудио в Telegram чат
+        with open("laba1.mp3", "rb") as f: #read binary
+            bot.send_audio(chat_id=msg.chat.id, audio=f)  
     except Exception as ex:
-        bot.send_message(msg.chat.id, f"Не удалось отправить аудио: {ex}")  # Сообщаем об ошибке пользователю
+        bot.send_message(msg.chat.id, f"Не удалось отправить аудио: {ex}")  
 
-# Обработчик команды /start, отправляет начальное сообщение и клавиатуру
+
 @bot.message_handler(commands=['start'])
 def start_handler(msg):
-    keyboard = telebot.types.InlineKeyboardMarkup()  # Создаем клавиатуру
-    for btn_text, btn_callback in START_BTNS:  # Добавляем кнопки из списка START_BTNS
+    keyboard = telebot.types.InlineKeyboardMarkup() 
+    for btn_text, btn_callback in START_BTNS: 
         keyboard.add(telebot.types.InlineKeyboardButton(text=btn_text, callback_data=btn_callback))
-    bot.send_message(msg.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=keyboard)  # Приветствие и клавиатура
+    bot.send_message(msg.chat.id, "Выберите действие:", reply_markup=keyboard) 
 
-# Обработчик команды /gen_audio, запрашивает текст для генерации аудио
+
 @bot.message_handler(commands=['gen_audio'])
 def gen_audio_handler(msg):
-    bot.send_message(msg.chat.id, "Отправьте текст для преобразования в аудио.")  # Сообщение пользователю
-    bot.register_next_step_handler(msg, gen_audio)  # Регистрируем следующую функцию gen_audio
+    bot.send_message(msg.chat.id, "Отправьте текст для преобразования в аудио.") 
+    bot.register_next_step_handler(msg, gen_audio) 
 
-# Обработчик команды /repo, отправляет ссылку на репозиторий
+
 @bot.message_handler(commands=['repo'])
 def repo_handler(msg):
-    bot.send_message(msg.chat.id, f"Вот ссылка на репозиторий: {REPO_URL}")  # Отправляем ссылку на репозиторий
+    bot.send_message(msg.chat.id, f"Cсылка на репозиторий: {REPO_URL}")  # Отправляем ссылку на репозиторий
 
 # Обработчик команды /stop для остановки бота
 @bot.message_handler(commands=['stop'])
 def stop_handler(msg):
-    global running  # Доступ к глобальной переменной running
-    bot.send_message(msg.chat.id, "Бот отключен.")  # Сообщаем об остановке бота
-    running = False  # Устанавливаем running в False, чтобы остановить цикл polling
+    global running  
+    bot.send_message(msg.chat.id, "Бот отключен.")  
+    running = False  # чтобы остановить цикл polling
     bot.stop_polling()  # Останавливаем polling в telebot
 
-# Обработчик текстовых сообщений от пользователя
+
 @bot.message_handler(content_types=['text'])
 def text_handler(msg):
-    if msg.text.startswith("Генерировать изображение"):  # Проверяем, соответствует ли текст запросу на генерацию изображения
-        bot.send_message(msg.chat.id, "Отправьте текст для генерации изображения.")  # Запрашиваем текст для генерации изображения
-        bot.register_next_step_handler(msg, gen_img)  # Регистрируем обработчик gen_img
+    if msg.text.startswith("Генерировать изображение"): 
+        bot.send_message(msg.chat.id, "Отправьте текст для генерации изображения.") 
+        bot.register_next_step_handler(msg, gen_img) 
     else:
-        # Отправляем сообщение, если текст не распознан как команда
-        bot.send_message(msg.chat.id, "Неизвестная команда. Используйте /gen_audio для генерации аудио или /repo для получения репозитория.")
-
-# Обработчик callback'ов для инлайн-клавиатуры
-@bot.callback_query_handler(func=lambda call: True)
-def callback_handler(call):
-    if call.data == "generate_image":  # Если callback_data равна "generate_image"
-        bot.send_message(call.message.chat.id, "Отправьте текст для генерации изображения.")  # Запрашиваем текст для генерации изображения
-        bot.register_next_step_handler(call.message, gen_img)  # Регистрируем обработчик gen_img
+        bot.send_message(msg.chat.id, "Неизвестная команда. Используйте /gen_audio для генерации аудио, /repo для получения репозитория или /stop для остановки бота")
