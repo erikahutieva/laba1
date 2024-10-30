@@ -5,17 +5,16 @@
 ## Установка
 
 1. Клонируйте репозиторий:
-
-    ```bash
+    bash:
     git clone https://github.com/erikahutieva/laba1.git
-    cd yourrepository
-    ```
+    cd laba1
+
 
 2. Установите зависимости:
 
-    ```bash
+    bash:
     pip install -r requirements.txt
-    ```
+
 
 3. Запустите бота:
 

@@ -1,56 +1,86 @@
+import requests
+import urllib3
+from pydub.generators import Sine
+import telebot
+from MukeshAPI import api
+from gtts import gTTS
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
-
-
-
-TOKEN = '7791332578:AAEmhl_Ws9aVfnXo14ocQziTx0_OW9uDSsM'
-
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 REPO_URL = 'https://github.com/erikahutieva/laba1'
+# Ваш токен от BotFather
+TOKEN = '7791332578:AAEmhl_Ws9aVfnXo14ocQziTx0_OW9uDSsM'
+bot = telebot.TeleBot(TOKEN)
 
+START_BTNS = [
+    ["Генерировать изображение", "generate_image"],
+]
 
-IMAGE_PATH = 'https://ru.wikipedia.org/wiki/%D0%A2%D0%B8%D0%B3%D1%80#/media/%D0%A4%D0%B0%D0%B9%D0%BB:P.t.altaica_Tomak_Male.jpg'
-AUDIO_PATH = 'https://d12.drivemusic.me/dl/l2gUEBPSyHDjzXGh-GbzzA/1729204227/download_music/2015/06/vivaldi-vremena-goda-leto.mp3'
-def start(update: Update, context: CallbackContext) -> None:
-    keyboard = [
-        [InlineKeyboardButton("Получить изображение", callback_data='get_image')],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
+# Функция генерации изображения
+def gen_img(msg):
+    bot.clear_step_handler_by_chat_id(msg.chat.id)
+    try:
+        img = api.ai_image(msg.text)  # Генерация изображения через MukeshAPI
+        bot.send_photo(msg.chat.id, img, caption=msg.text)
+    except Exception as e:
+        print(f"Ошибка: {e}")
+        bot.send_message(msg.chat.id, "Не удалось отправить изображение")
 
-def button(update: Update, context: CallbackContext) -> None:
-    query = update.callback_query
-    query.answer()
+    # Создание клавиатуры
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    for btn_text, btn_callback in START_BTNS:
+        keyboard.add(telebot.types.InlineKeyboardButton(text=btn_text, callback_data=btn_callback))
+    bot.send_message(msg.chat.id, "Выберите действие:", reply_markup=keyboard)
 
-    if query.data == 'get_image':
-        context.bot.send_photo(chat_id=query.message.chat_id, photo=IMAGE_PATH)
+# Функция генерации аудио из текста
+def gen_audio(msg):
+    bot.clear_step_handler_by_chat_id(msg.chat.id)
+    try:
+        # Генерация аудио из текста
+        tts = gTTS(text=msg.text, lang='en')
+        tts.save("req.mp3")
+        
+        # Отправка сгенерированного аудио в Telegram чат
+        with open("req.mp3", "rb") as f:
+            bot.send_audio(chat_id=msg.chat.id, audio=f)
+    except Exception as ex:
+        bot.send_message(msg.chat.id, f"Не удалось отправить аудио: {ex}")
 
-def get_audio(update: Update, context: CallbackContext) -> None:
-      context.bot.send_audio(chat_id=update.message.chat_id, audio=AUDIO_PATH)
+# Обработчик команды /start
+@bot.message_handler(commands=['start'])
+def start_handler(msg):
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    for btn_text, btn_callback in START_BTNS:
+        keyboard.add(telebot.types.InlineKeyboardButton(text=btn_text, callback_data=btn_callback))
+    bot.send_message(msg.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=keyboard)
 
-def get_repo_link(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(f'Ссылка на репозиторий: {REPO_URL}')
+# Обработчик команды /gen_audio для генерации аудио
+@bot.message_handler(commands=['gen_audio'])
+def gen_audio_handler(msg):
+    bot.send_message(msg.chat.id, "Отправьте текст для преобразования в аудио.")
+    bot.register_next_step_handler(msg, gen_audio)
 
-def stop(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("Бот остановлен")
-    context.bot_data['updater'].stop()
+# Обработчик команды /repo для получения ссылки на репозиторий
+@bot.message_handler(commands=['repo'])
+def repo_handler(msg):
+    bot.send_message(msg.chat.id, f"Вот ссылка на репозиторий: {REPO_URL}")
 
-def main() -> None:
-    updater = Updater(TOKEN, use_context=True)
+# Обработчик текстовых сообщений
+@bot.message_handler(content_types=['text'])
+def text_handler(msg):
+    if msg.text.startswith("Генерировать изображение"):
+        bot.send_message(msg.chat.id, "Отправьте текст для генерации изображения.")
+        bot.register_next_step_handler(msg, gen_img)
+    else:
+        # Сообщение, если текст не распознан как команда
+        bot.send_message(msg.chat.id, "Неизвестная команда. Используйте /gen_audio для генерации аудио или /repo для получения репозитория.")
 
-    dispatcher = updater.dispatcher
+# Обработчик обратного вызова для клавиатуры
+@bot.callback_query_handler(func=lambda call: True)
+def callback_handler(call):
+    if call.data == "generate_image":
+        bot.send_message(call.message.chat.id, "Отправьте текст для генерации изображения.")
+        bot.register_next_step_handler(call.message, gen_img)
 
-    dispatcher.bot_data['updater'] = updater
-
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CallbackQueryHandler(button))
-    dispatcher.add_handler(CommandHandler("get_audio", get_audio))
-    dispatcher.add_handler(CommandHandler("get_repo_link", get_repo_link))
-    dispatcher.add_handler(CommandHandler("stop", stop))
-
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
+# Запуск бота
+bot.polling(none_stop=True)
