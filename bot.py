@@ -1,5 +1,6 @@
-import requests  #  для отправки HTTP-запросов
-import urllib3  # для управления запросами
+#Класс описывает, как будет устроен объект. Он определяет свойства (переменные) и методы (функции), которые объект этого класса будет иметь.
+#Объект — это экземпляр (реализация) класса. Он создается на основе класса и имеет все свойства и методы, описанные в этом классе.
+import urllib3  
 import telebot  
 from MukeshAPI import api 
 from gtts import gTTS  #  Google Text-to-Speech для создания аудиофайлов из текста
@@ -10,8 +11,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 REPO_URL = 'https://github.com/erikahutieva/laba1' 
 TOKEN = '7791332578:AAEmhl_Ws9aVfnXo14ocQziTx0_OW9uDSsM'
-bot = telebot.TeleBot(TOKEN)  # Создаем объект TeleBot
-
+bot = telebot.TeleBot(TOKEN)  # TeleBot класс из библиотеки telebot для взаимодействия с Telegram API
+#Создание объекта bot  позволяет боту получать сообщения и отправлять ответы пользователям. 
 START_BTNS = [
     ["Генерировать изображение", "generate_image"],  
 ]
