@@ -3,7 +3,7 @@
 import urllib3  
 import telebot  
 from MukeshAPI import api 
-from gtts import gTTS  #  Google Text-to-Speech для создания аудиофайлов из текста
+from gtts import gTTS  #  Google Text-to-Speech для создания аудиофайлов из текста, использует записанные фрагменты речи, соединяя их в нужном порядке для создания слов и предложений.
 import threading  #  для многопоточного выполнения кода
 
 
@@ -105,3 +105,42 @@ def callback_handler(call):
     if call.data == "generate_image":  # Если callback_data равна "generate_image"
         bot.send_message(call.message.chat.id, "Отправьте текст для генерации изображения.")
         bot.register_next_step_handler(call.message, gen_img)  
+
+
+
+
+'''
+Основные свойства:
+TOKEN: Этот токен передается при создании объекта bot и используется для аутентификации с Telegram API.
+
+last_update_id: Свойство, используемое для отслеживания последних обновлений. Оно помогает избежать обработки одних и тех же сообщений несколько раз.
+
+update_listener: Позволяет установить пользовательскую функцию, которая будет вызываться при каждом получении нового сообщения. Это полезно, если нужно обрабатывать сообщения нестандартным образом.
+
+Основные методы:
+send_message(chat_id, text, **kwargs): Отправляет сообщение пользователю или в группу.
+reply_to(message, text, **kwargs): Отвечает на конкретное сообщение пользователя.
+edit_message_text(...): Изменяет текст уже отправленного сообщения.
+delete_message(chat_id, message_id): Удаляет сообщение из чата.
+get_me(): Возвращает информацию о боте (например, его имя и имя пользователя).
+get_updates(): Получает обновления (сообщения и события) от сервера Telegram.
+polling(): Запускает бесконечный цикл, который проверяет новые сообщения и обрабатывает их.
+stop_polling(): Останавливает опрос сообщений.
+set_webhook(url=None, certificate=None, max_connections=None, allowed_updates=None): Устанавливает Webhook для взаимодействия с сервером.
+delete_webhook(): Удаляет установленный Webhook.
+get_chat(chat_id): Получает информацию о чате.
+get_chat_administrators(chat_id): Возвращает список администраторов чата.
+get_chat_member(chat_id, user_id): Возвращает информацию об участнике чата.
+get_chat_members_count(chat_id): Возвращает количество участников в чате.
+send_photo(chat_id, photo, **kwargs): Отправляет фото в чат.
+send_audio(chat_id, audio, **kwargs): Отправляет аудио в чат.
+send_document(chat_id, document, **kwargs): Отправляет документ в чат.
+send_video(chat_id, video, **kwargs): Отправляет видео в чат.
+send_voice(chat_id, voice, **kwargs): Отправляет голосовое сообщение.
+send_location(chat_id, latitude, longitude, **kwargs): Отправляет местоположение.
+send_poll(chat_id, question, options, **kwargs): Отправляет опрос в чат.
+Обработчики событий:
+@bot.message_handler(commands=['start', 'help']): Декоратор для обработки команд.
+@bot.message_handler(func=lambda message: True): Декоратор для обработки всех типов сообщений.
+
+'''
